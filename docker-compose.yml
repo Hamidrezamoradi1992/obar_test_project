@@ -1,0 +1,40 @@
+services:
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - 6379:6379
+
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1
+      - POSTGRES_PORT=5432
+    volumes:
+      - ./volumes/db/:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+#
+#  application:
+#    build: ./application/
+#    restart: always
+#    volumes:
+#      - ./volumes/app/storage/:/app/storage/
+#    ports:
+#      - "8000:8000"
+#    command: "/bin/sh -c '
+#      python manage.py wait_for_redis &&
+#      python manage.py wait_for_db &&
+#      python manage.py makemigrations  &&
+#      python manage.py migrate &&
+#      gunicorn --bind 0.0.0.0:8000 config.wsgi:application
+#    '"
+#    env_file:
+#      - ../DeployeDvar1/application/.env
+#    depends_on:
+#      - redis
+#      - db
+
