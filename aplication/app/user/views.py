@@ -42,3 +42,24 @@ class SendCode(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class VerifiCode(APIView):
+    serializer_class = ValidationCodeSerializers
+    permission_classes = [RequestUserAttackVerifyCode]
+
+    def post(self, request):
+        ip_user = request.custom_info.get("ip")
+        serializer = PhoneNumberSerializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data['phone_number']
+            code = request.data['code']
+            if (data := Utils.set_cache(phone=phone_number, ip=ip_user)):
+                data_code = data["code"]  # noqa
+                if code == data_code:
+                    data["verifi"] = True
+                    cache.set(phone_number, data, 3600)
+                    return Response({"message": "کار بر شناسایی شد "}, status=status.HTTP_301_MOVED_PERMANENTLY)
+                return Response({"message": " اطلاعات وارد شده صحیح نمی باشد "}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
