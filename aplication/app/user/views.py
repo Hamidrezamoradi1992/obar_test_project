@@ -61,5 +61,31 @@ class VerifiCode(APIView):
                 return Response({"message": " اطلاعات وارد شده صحیح نمی باشد "}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class SignupView(APIView):
+    serializer_class = SignupSerializers
+    permission_classes = []
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        phone = request.data.get("phone")
+
+        data = cache.get(phone)
+        if data and data.get("verifi") is True:
+            if serializer.is_valid():
+                User.objects.create_user(**serializer.validated_data)
+                cache.delete(phone)
+                return Response(
+                    {"message": "ثبت‌نام با موفقیت انجام شد."},
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {"message": "اطلاعات وارد شده صحیح نمی‌باشد."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+
 
 
