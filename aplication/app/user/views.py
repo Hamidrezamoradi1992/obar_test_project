@@ -85,7 +85,34 @@ class SignupView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+class SingIn(APIView):
+    permission_classes = [RequestUserVerifyPassword]
+    serializer_class = LoginUserSerializer
 
+    def post(self, request):
+        serializer = PhoneNumberSerializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data['phone_number']
+            password = request.data['password']
+            print(password)
+            try:
+                user = User.objects.get(phone=phone_number)
+                if user.check_password(password):
+                    login(request, user)
+                    cached_object = cache.get(phone_number)
+                    if cached_object:
+                        cached_object.delete()
+                    return Response({"message": " کاربر  وارد شد"}, status=status.HTTP_200_OK)
+                if count := cache.get(phone_number):
+                    count += 1
+                else:
+                    count = 1
+                cache.set(phone_number, count, 3600)
+                return Response({"message": " کاربر با این مشخصات پیدا نشد"}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                return Response({"message": " کاربر با این مشخصات پیدا نشد"}, status=status.HTTP_403_FORBIDDEN)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
