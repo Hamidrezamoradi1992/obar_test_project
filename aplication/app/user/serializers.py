@@ -27,7 +27,7 @@ class LoginUserSerializer(PhoneNumberSerializer):
     )
 
 
-class ValidationCode(PhoneNumberSerializer):
+class ValidationCodeSerializers(PhoneNumberSerializer):
     code = serializers.CharField(
         max_length=6,
         # min_length=8,
